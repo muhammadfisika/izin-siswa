@@ -1,1 +1,337 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
 
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Sistem Izin Siswa</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- =========================
+       HALAMAN LOGIN
+  ========================== -->
+
+  <div id="loginPage" class="page">
+
+    <div class="login-container">
+
+      <div class="school-icon">
+        🏫
+      </div>
+
+      <h1>Sistem Izin Siswa</h1>
+
+      <p class="subtitle">
+        Izin Masuk & Keluar Sekolah
+      </p>
+
+      <div class="form-group">
+
+        <label>Username</label>
+
+        <input
+          type="text"
+          id="username"
+          placeholder="Masukkan username"
+          autocomplete="username"
+        >
+
+      </div>
+
+      <div class="form-group">
+
+        <label>Password</label>
+
+        <input
+          type="password"
+          id="password"
+          placeholder="Masukkan password"
+          autocomplete="current-password"
+        >
+
+      </div>
+
+      <button
+        class="btn btn-primary btn-full"
+        onclick="login()"
+      >
+        LOGIN
+      </button>
+
+      <div id="loginMessage" class="message"></div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================
+       DASHBOARD WALI KELAS
+  ========================== -->
+
+  <div id="waliPage" class="page hidden">
+
+    <header class="topbar">
+
+      <div>
+
+        <div class="app-title">
+          🏫 Sistem Izin Siswa
+        </div>
+
+        <div class="user-role">
+          Wali Kelas
+        </div>
+
+      </div>
+
+      <button
+        class="btn-logout"
+        onclick="logout()"
+      >
+        Keluar
+      </button>
+
+    </header>
+
+
+    <main class="container">
+
+      <!-- INFORMASI USER -->
+
+      <section class="card user-card">
+
+        <div>
+
+          <div class="small-label">
+            Wali Kelas
+          </div>
+
+          <div
+            id="namaWali"
+            class="user-name"
+          >
+            -
+          </div>
+
+        </div>
+
+        <div>
+
+          <div class="small-label">
+            Kelas
+          </div>
+
+          <div
+            id="kelasWali"
+            class="user-name"
+          >
+            -
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- FORM PENCARIAN -->
+
+      <section class="card">
+
+        <h2>🔎 Cari Siswa</h2>
+
+        <p class="description">
+          Cari nama siswa yang akan diberikan izin.
+        </p>
+
+        <div class="search-row">
+
+          <input
+            type="text"
+            id="keywordSiswa"
+            placeholder="Nama / NIS / NISN"
+            onkeyup="cariSiswaKey(event)"
+          >
+
+          <button
+            class="btn btn-primary"
+            onclick="cariSiswa()"
+          >
+            Cari
+          </button>
+
+        </div>
+
+        <div
+          id="hasilSiswa"
+          class="student-list"
+        ></div>
+
+      </section>
+
+
+      <!-- FORM IZIN -->
+
+      <section
+        id="formIzinCard"
+        class="card hidden"
+      >
+
+        <h2>📝 Form Izin Siswa</h2>
+
+        <div
+          id="siswaTerpilih"
+          class="selected-student"
+        ></div>
+
+
+        <input
+          type="hidden"
+          id="idSiswa"
+        >
+
+
+        <!-- TANGGAL -->
+
+        <div class="form-group">
+
+          <label>Tanggal Izin</label>
+
+          <input
+            type="date"
+            id="tanggal"
+          >
+
+        </div>
+
+
+        <!-- JENIS IZIN -->
+
+        <div class="form-group">
+
+          <label>Jenis Izin</label>
+
+          <div class="radio-container">
+
+            <label class="radio-option">
+
+              <input
+                type="radio"
+                name="jenisIzin"
+                value="KELUAR"
+                onchange="ubahJenisIzin()"
+                checked
+              >
+
+              <span>🚪 Izin Keluar</span>
+
+            </label>
+
+
+            <label class="radio-option">
+
+              <input
+                type="radio"
+                name="jenisIzin"
+                value="MASUK"
+                onchange="ubahJenisIzin()"
+              >
+
+              <span>🏫 Izin Masuk</span>
+
+            </label>
+
+          </div>
+
+        </div>
+
+
+        <!-- ALASAN -->
+
+        <div class="form-group">
+
+          <label>Alasan Izin</label>
+
+          <textarea
+            id="alasan"
+            rows="3"
+            placeholder="Masukkan alasan izin"
+          ></textarea>
+
+        </div>
+
+
+        <!-- WAKTU KELUAR -->
+
+        <div
+          id="groupWaktuKeluar"
+          class="form-group"
+        >
+
+          <label>Rencana Waktu Keluar</label>
+
+          <input
+            type="time"
+            id="waktuKeluar"
+          >
+
+        </div>
+
+
+        <!-- WAKTU MASUK -->
+
+        <div class="form-group">
+
+          <label>Rencana Waktu Masuk / Kembali</label>
+
+          <input
+            type="time"
+            id="waktuMasuk"
+          >
+
+        </div>
+
+
+        <button
+          class="btn btn-success btn-full"
+          onclick="simpanIzin()"
+        >
+          💾 SIMPAN IZIN
+        </button>
+
+
+        <div
+          id="izinMessage"
+          class="message"
+        ></div>
+
+      </section>
+
+
+      <!-- LOADING -->
+
+      <div
+        id="loading"
+        class="loading hidden"
+      >
+        <div class="spinner"></div>
+        <p>Memproses...</p>
+      </div>
+
+    </main>
+
+  </div>
+
+
+  <script src="app.js"></script>
+
+</body>
+</html>
