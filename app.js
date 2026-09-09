@@ -1,4 +1,4 @@
-```javascript
+
 /*************************************************
  * SISTEM IZIN SISWA
  * FRONTEND
