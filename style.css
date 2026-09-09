@@ -1,3 +1,4 @@
+```css
 * {
   box-sizing: border-box;
 }
@@ -24,7 +25,7 @@ body {
 
 .container {
   width: 100%;
-  max-width: 900px;
+  max-width: 950px;
   margin: auto;
   padding: 20px;
 }
@@ -172,9 +173,7 @@ body {
 
 .form-group label {
   display: block;
-
   font-weight: bold;
-
   margin-bottom: 7px;
 }
 
@@ -244,7 +243,6 @@ textarea {
 
 .search-row {
   display: flex;
-
   gap: 10px;
 }
 
@@ -331,7 +329,6 @@ textarea {
 
 .radio-container {
   display: flex;
-
   gap: 10px;
 }
 
@@ -352,6 +349,400 @@ textarea {
 .radio-option input {
   width: auto;
   margin-right: 5px;
+}
+
+
+/* =========================
+   STATISTICS
+========================= */
+
+.stats-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 15px;
+
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: white;
+
+  border-radius: 14px;
+
+  padding: 20px;
+
+  text-align: center;
+
+  box-shadow:
+    0 3px 15px rgba(0, 0, 0, 0.06);
+}
+
+.stat-icon {
+  font-size: 25px;
+}
+
+.stat-number {
+  font-size: 30px;
+
+  font-weight: bold;
+
+  margin: 5px 0;
+}
+
+.stat-label {
+  color: #6b7280;
+
+  font-size: 13px;
+}
+
+
+/* =========================
+   FILTER
+========================= */
+
+.filter-row {
+  display: flex;
+
+  gap: 8px;
+
+  margin: 18px 0;
+}
+
+.filter-btn {
+  border: 1px solid #d1d5db;
+
+  background: white;
+
+  border-radius: 8px;
+
+  padding: 9px 15px;
+
+  cursor: pointer;
+
+  font-weight: bold;
+}
+
+.filter-btn.active {
+  background: #2563eb;
+
+  color: white;
+
+  border-color: #2563eb;
+}
+
+
+/* =========================
+   PERMISSION LIST
+========================= */
+
+.permission-list {
+  margin-top: 10px;
+}
+
+.permission-card {
+  border: 1px solid #e5e7eb;
+
+  border-radius: 13px;
+
+  padding: 15px;
+
+  margin-bottom: 12px;
+
+  display: flex;
+
+  gap: 15px;
+
+  align-items: center;
+}
+
+.permission-photo {
+  width: 65px;
+
+  height: 65px;
+
+  border-radius: 50%;
+
+  object-fit: cover;
+
+  background: #e5e7eb;
+
+  flex-shrink: 0;
+}
+
+.permission-avatar {
+  width: 65px;
+
+  height: 65px;
+
+  border-radius: 50%;
+
+  background: #dbeafe;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  font-size: 30px;
+
+  flex-shrink: 0;
+}
+
+.permission-main {
+  flex: 1;
+}
+
+.permission-name {
+  font-weight: bold;
+
+  font-size: 17px;
+}
+
+.permission-meta {
+  color: #6b7280;
+
+  font-size: 13px;
+
+  margin-top: 4px;
+
+  line-height: 1.5;
+}
+
+.permission-reason {
+  margin-top: 7px;
+
+  font-size: 14px;
+}
+
+.permission-action {
+  flex-shrink: 0;
+}
+
+.btn-detail {
+  border: none;
+
+  background: #eff6ff;
+
+  color: #1d4ed8;
+
+  border-radius: 8px;
+
+  padding: 9px 12px;
+
+  font-weight: bold;
+
+  cursor: pointer;
+}
+
+.btn-approve {
+  border: none;
+
+  background: #16a34a;
+
+  color: white;
+
+  border-radius: 8px;
+
+  padding: 9px 13px;
+
+  font-weight: bold;
+
+  cursor: pointer;
+
+  margin-top: 6px;
+}
+
+.btn-approve:disabled {
+  background: #9ca3af;
+
+  cursor: not-allowed;
+}
+
+
+/* =========================
+   STATUS
+========================= */
+
+.status-badge {
+  display: inline-block;
+
+  border-radius: 20px;
+
+  padding: 5px 10px;
+
+  font-size: 11px;
+
+  font-weight: bold;
+
+  margin-top: 7px;
+}
+
+.status-menunggu {
+  background: #fef3c7;
+
+  color: #92400e;
+}
+
+.status-disetujui {
+  background: #dcfce7;
+
+  color: #166534;
+}
+
+.status-ditolak {
+  background: #fee2e2;
+
+  color: #991b1b;
+}
+
+
+/* =========================
+   EMPTY
+========================= */
+
+.empty-state {
+  text-align: center;
+
+  padding: 30px 15px;
+
+  color: #6b7280;
+}
+
+
+/* =========================
+   DETAIL MODAL
+========================= */
+
+.modal {
+  position: fixed;
+
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.55);
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  padding: 20px;
+
+  z-index: 1000;
+}
+
+.modal-box {
+  width: 100%;
+
+  max-width: 500px;
+
+  max-height: 90vh;
+
+  overflow-y: auto;
+
+  background: white;
+
+  border-radius: 16px;
+
+  padding: 25px;
+
+  position: relative;
+}
+
+.modal-box h2 {
+  margin-top: 0;
+}
+
+.modal-close {
+  position: absolute;
+
+  right: 15px;
+
+  top: 12px;
+
+  border: none;
+
+  background: transparent;
+
+  font-size: 30px;
+
+  cursor: pointer;
+
+  color: #6b7280;
+}
+
+.detail-photo {
+  width: 110px;
+
+  height: 110px;
+
+  border-radius: 50%;
+
+  object-fit: cover;
+
+  display: block;
+
+  margin: 0 auto 15px;
+}
+
+.detail-avatar {
+  width: 110px;
+
+  height: 110px;
+
+  border-radius: 50%;
+
+  background: #dbeafe;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  font-size: 50px;
+
+  margin: 0 auto 15px;
+}
+
+.detail-name {
+  text-align: center;
+
+  font-size: 20px;
+
+  font-weight: bold;
+
+  margin-bottom: 20px;
+}
+
+.detail-row {
+  display: flex;
+
+  justify-content: space-between;
+
+  gap: 15px;
+
+  padding: 10px 0;
+
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.detail-label {
+  color: #6b7280;
+}
+
+.detail-value {
+  font-weight: bold;
+
+  text-align: right;
+}
+
+.detail-action {
+  margin-top: 20px;
 }
 
 
@@ -405,11 +796,12 @@ textarea {
 
   justify-content: center;
 
-  z-index: 999;
+  z-index: 2000;
 }
 
 .spinner {
   width: 45px;
+
   height: 45px;
 
   border: 5px solid #e5e7eb;
@@ -434,7 +826,7 @@ textarea {
    MOBILE
 ========================= */
 
-@media (max-width: 600px) {
+@media (max-width: 650px) {
 
   .container {
     padding: 12px;
@@ -466,6 +858,7 @@ textarea {
 
   .student-item {
     align-items: flex-start;
+
     flex-direction: column;
   }
 
@@ -477,4 +870,46 @@ textarea {
     flex-direction: column;
   }
 
+  .stats-grid {
+    grid-template-columns:
+      repeat(3, 1fr);
+
+    gap: 8px;
+  }
+
+  .stat-card {
+    padding: 12px 5px;
+  }
+
+  .stat-number {
+    font-size: 24px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+  }
+
+  .permission-card {
+    align-items: flex-start;
+
+    flex-wrap: wrap;
+  }
+
+  .permission-action {
+    width: 100%;
+  }
+
+  .permission-action button {
+    width: 100%;
+  }
+
+  .filter-row {
+    overflow-x: auto;
+  }
+
+  .filter-btn {
+    white-space: nowrap;
+  }
+
 }
+```
