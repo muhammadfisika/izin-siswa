@@ -2,7 +2,7 @@
  * SISTEM IZIN SISWA
  * FRONTEND
  * TAHAP 4
- *
+ 
  * ROLE:
  * WALI_KELAS
  * WAKASEK
