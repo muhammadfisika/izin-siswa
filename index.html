@@ -1,9 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
-
   <meta charset="UTF-8">
 
   <meta
@@ -13,123 +10,107 @@
 
   <meta
     name="theme-color"
-    content="#1d4ed8"
+    content="#2563eb"
   >
 
   <title>Sistem Izin Siswa</title>
 
-  <link
-    rel="stylesheet"
-    href="style.css"
-  >
-
+  <link rel="stylesheet" href="style.css">
 </head>
-
 
 <body>
 
+<!-- =====================================================
+     LOGIN
+===================================================== -->
 
-<!-- ==================================================
-     HALAMAN LOGIN
-================================================== -->
-
-<div
-  id="loginPage"
-  class="page"
->
+<section id="loginPage" class="page active">
 
   <div class="login-container">
 
-    <div class="school-icon">
-      🏫
-    </div>
+    <div class="login-card">
 
-    <h1>
-      Sistem Izin Siswa
-    </h1>
+      <div class="login-logo">
+        🏫
+      </div>
 
-    <p class="subtitle">
-      Izin Masuk & Keluar Sekolah
-    </p>
+      <h1>Sistem Izin Siswa</h1>
 
+      <p class="login-subtitle">
+        Izin Masuk / Keluar Sekolah
+      </p>
 
-    <div class="form-group">
+      <div class="form-group">
 
-      <label>
-        Username
-      </label>
+        <label for="username">
+          Username
+        </label>
 
-      <input
-        type="text"
-        id="username"
-        placeholder="Masukkan username"
-        autocomplete="username"
+        <input
+          type="text"
+          id="username"
+          placeholder="Masukkan username"
+          autocomplete="username"
+        >
+
+      </div>
+
+      <div class="form-group">
+
+        <label for="password">
+          Password
+        </label>
+
+        <input
+          type="password"
+          id="password"
+          placeholder="Masukkan password"
+          autocomplete="current-password"
+        >
+
+      </div>
+
+      <button
+        type="button"
+        class="btn btn-primary btn-full"
+        onclick="login()"
       >
+        MASUK
+      </button>
+
+      <div
+        id="loginMessage"
+        class="message"
+      ></div>
 
     </div>
-
-
-    <div class="form-group">
-
-      <label>
-        Password
-      </label>
-
-      <input
-        type="password"
-        id="password"
-        placeholder="Masukkan password"
-        autocomplete="current-password"
-      >
-
-    </div>
-
-
-    <button
-      class="btn btn-primary btn-full"
-      onclick="login()"
-    >
-      LOGIN
-    </button>
-
-
-    <div
-      id="loginMessage"
-      class="message"
-    ></div>
 
   </div>
 
-</div>
+</section>
 
 
-
-<!-- ==================================================
+<!-- =====================================================
      DASHBOARD WALI KELAS
-================================================== -->
+===================================================== -->
 
-<div
+<section
   id="waliPage"
-  class="page hidden"
+  class="page"
 >
 
   <header class="topbar">
 
     <div>
+      <h2>Dashboard Wali Kelas</h2>
 
-      <div class="app-title">
-        🏫 Sistem Izin Siswa
-      </div>
-
-      <div class="user-role">
-        Wali Kelas
-      </div>
-
+      <p id="waliInfo">
+        -
+      </p>
     </div>
 
-
     <button
-      class="btn-logout"
+      class="btn btn-danger"
       onclick="logout()"
     >
       Keluar
@@ -140,121 +121,54 @@
 
   <main class="container">
 
+    <div class="card">
 
-    <!-- INFORMASI WALI -->
-
-    <section class="card user-card">
-
-      <div>
-
-        <div class="small-label">
-          Wali Kelas
-        </div>
-
-        <div
-          id="namaWali"
-          class="user-name"
-        >
-          -
-        </div>
-
-      </div>
-
-
-      <div>
-
-        <div class="small-label">
-          Kelas
-        </div>
-
-        <div
-          id="kelasWali"
-          class="user-name"
-        >
-          -
-        </div>
-
-      </div>
-
-    </section>
-
-
-
-    <!-- CARI SISWA -->
-
-    <section class="card">
-
-      <h2>
-        🔎 Cari Siswa
-      </h2>
-
-      <p class="description">
-        Cari siswa dari kelas Anda.
-      </p>
-
-
-      <div class="search-row">
-
-        <input
-          type="text"
-          id="keywordSiswa"
-          placeholder="Nama / NIS / NISN"
-          onkeyup="cariSiswaKey(event)"
-        >
-
-
-        <button
-          class="btn btn-primary"
-          onclick="cariSiswa()"
-        >
-          Cari
-        </button>
-
-      </div>
-
-
-      <div
-        id="hasilSiswa"
-        class="student-list"
-      ></div>
-
-    </section>
-
-
-
-    <!-- FORM IZIN -->
-
-    <section
-      id="formIzinCard"
-      class="card hidden"
-    >
-
-      <h2>
-        📝 Form Izin Siswa
-      </h2>
-
-
-      <div
-        id="siswaTerpilih"
-        class="selected-student"
-      ></div>
-
-
-      <input
-        type="hidden"
-        id="idSiswa"
-      >
-
+      <h3>Pengajuan Izin Siswa</h3>
 
       <div class="form-group">
 
         <label>
-          Tanggal Izin
+          Cari Nama Siswa
+        </label>
+
+        <input
+          type="text"
+          id="cariSiswaInput"
+          placeholder="Ketik nama siswa..."
+          oninput="cariSiswa()"
+        >
+
+      </div>
+
+      <div
+        id="hasilPencarianSiswa"
+        class="student-list"
+      ></div>
+
+      <div
+        id="siswaTerpilih"
+        class="selected-student hidden"
+      ></div>
+
+    </div>
+
+
+    <div
+      id="formIzin"
+      class="card hidden"
+    >
+
+      <h3>Form Izin</h3>
+
+      <div class="form-group">
+
+        <label>
+          Tanggal
         </label>
 
         <input
           type="date"
-          id="tanggal"
+          id="tanggalIzin"
         >
 
       </div>
@@ -266,8 +180,7 @@
           Jenis Izin
         </label>
 
-
-        <div class="radio-container">
+        <div class="radio-group">
 
           <label class="radio-option">
 
@@ -276,12 +189,9 @@
               name="jenisIzin"
               value="KELUAR"
               onchange="ubahJenisIzin()"
-              checked
             >
 
-            <span>
-              🚪 Izin Keluar
-            </span>
+            <span>KELUAR</span>
 
           </label>
 
@@ -295,9 +205,7 @@
               onchange="ubahJenisIzin()"
             >
 
-            <span>
-              🏫 Izin Masuk
-            </span>
+            <span>MASUK</span>
 
           </label>
 
@@ -313,92 +221,86 @@
         </label>
 
         <textarea
-          id="alasan"
+          id="alasanIzin"
           rows="3"
-          placeholder="Masukkan alasan izin"
+          placeholder="Masukkan alasan izin..."
         ></textarea>
 
       </div>
 
 
-      <div
-        id="groupWaktuKeluar"
-        class="form-group"
-      >
+      <div class="form-row">
 
-        <label>
-          Rencana Waktu Keluar
-        </label>
+        <div class="form-group">
 
-        <input
-          type="time"
-          id="waktuKeluar"
-        >
+          <label>
+            Waktu Keluar
+          </label>
 
-      </div>
+          <input
+            type="time"
+            id="waktuKeluar"
+          >
+
+        </div>
 
 
-      <div class="form-group">
+        <div class="form-group">
 
-        <label>
-          Rencana Waktu Masuk / Kembali
-        </label>
+          <label>
+            Waktu Masuk
+          </label>
 
-        <input
-          type="time"
-          id="waktuMasuk"
-        >
+          <input
+            type="time"
+            id="waktuMasuk"
+          >
+
+        </div>
 
       </div>
 
 
       <button
+        type="button"
         class="btn btn-success btn-full"
         onclick="simpanIzin()"
       >
-        💾 SIMPAN IZIN
+        SIMPAN IZIN
       </button>
 
-
-      <div
-        id="izinMessage"
-        class="message"
-      ></div>
-
-    </section>
+    </div>
 
   </main>
 
-</div>
+</section>
 
 
-
-<!-- ==================================================
+<!-- =====================================================
      DASHBOARD WAKASEK
-================================================== -->
+===================================================== -->
 
-<div
+<section
   id="wakasekPage"
-  class="page hidden"
+  class="page"
 >
 
   <header class="topbar">
 
     <div>
 
-      <div class="app-title">
-        🏫 Sistem Izin Siswa
-      </div>
+      <h2>
+        Dashboard Wakasek
+      </h2>
 
-      <div class="user-role">
-        Wakasek
-      </div>
+      <p id="wakasekInfo">
+        -
+      </p>
 
     </div>
 
-
     <button
-      class="btn-logout"
+      class="btn btn-danger"
       onclick="logout()"
     >
       Keluar
@@ -409,64 +311,15 @@
 
   <main class="container">
 
-
-    <!-- INFORMASI WAKASEK -->
-
-    <section class="card user-card">
-
-      <div>
-
-        <div class="small-label">
-          Wakasek
-        </div>
-
-        <div
-          id="namaWakasek"
-          class="user-name"
-        >
-          -
-        </div>
-
-      </div>
-
-
-      <div>
-
-        <div class="small-label">
-          Tanggal
-        </div>
-
-        <div
-          id="tanggalWakasek"
-          class="user-name"
-        >
-          -
-        </div>
-
-      </div>
-
-    </section>
-
-
-
-    <!-- STATISTIK -->
-
-    <section class="stats-grid">
+    <div class="stats-grid">
 
       <div class="stat-card">
 
-        <div class="stat-icon">
-          ⏳
-        </div>
-
-        <div
-          id="jumlahMenunggu"
-          class="stat-number"
-        >
+        <div class="stat-number" id="statMenunggu">
           0
         </div>
 
-        <div class="stat-label">
+        <div>
           Menunggu
         </div>
 
@@ -475,18 +328,11 @@
 
       <div class="stat-card">
 
-        <div class="stat-icon">
-          ✅
-        </div>
-
-        <div
-          id="jumlahDisetujui"
-          class="stat-number"
-        >
+        <div class="stat-number" id="statDisetujui">
           0
         </div>
 
-        <div class="stat-label">
+        <div>
           Disetujui
         </div>
 
@@ -495,124 +341,81 @@
 
       <div class="stat-card">
 
-        <div class="stat-icon">
-          📋
-        </div>
-
-        <div
-          id="jumlahTotal"
-          class="stat-number"
-        >
+        <div class="stat-number" id="statTotal">
           0
         </div>
 
-        <div class="stat-label">
+        <div>
           Total Hari Ini
         </div>
 
       </div>
 
-    </section>
+    </div>
 
 
+    <div class="filter-group">
 
-    <!-- FILTER -->
-
-    <section class="card">
-
-      <h2>
-        📋 Persetujuan Izin
-      </h2>
-
-      <p class="description">
-        Daftar izin siswa pada hari ini.
-      </p>
-
-
-      <div class="filter-row">
-
-        <button
-          class="filter-btn active"
-          data-filter="SEMUA"
-          onclick="filterWakasek('SEMUA')"
-        >
-          Semua
-        </button>
-
-
-        <button
-          class="filter-btn"
-          data-filter="MENUNGGU"
-          onclick="filterWakasek('MENUNGGU')"
-        >
-          Menunggu
-        </button>
-
-
-        <button
-          class="filter-btn"
-          data-filter="DISETUJUI"
-          onclick="filterWakasek('DISETUJUI')"
-        >
-          Disetujui
-        </button>
-
-      </div>
-
-
-      <div
-        id="daftarIzinWakasek"
-        class="permission-list"
+      <button
+        class="filter-btn active"
+        onclick="filterWakasek('SEMUA')"
       >
+        Semua
+      </button>
 
-        <div class="empty-state">
-          Memuat data...
-        </div>
+      <button
+        class="filter-btn"
+        onclick="filterWakasek('MENUNGGU')"
+      >
+        Menunggu
+      </button>
 
-      </div>
+      <button
+        class="filter-btn"
+        onclick="filterWakasek('DISETUJUI')"
+      >
+        Disetujui
+      </button>
 
-    </section>
+    </div>
 
+
+    <div id="daftarIzinWakasek"></div>
 
   </main>
 
-</div>
+</section>
 
 
-
-<!-- ==================================================
-     MODAL DETAIL IZIN
-================================================== -->
+<!-- =====================================================
+     MODAL DETAIL
+===================================================== -->
 
 <div
   id="detailModal"
   class="modal hidden"
 >
 
-  <div class="modal-box">
+  <div class="modal-content">
 
-    <button
-      class="modal-close"
-      onclick="tutupDetail()"
-    >
-      ×
-    </button>
+    <div class="modal-header">
 
+      <h3>
+        Detail Izin
+      </h3>
 
-    <h2>
-      Detail Izin Siswa
-    </h2>
+      <button
+        class="modal-close"
+        onclick="tutupDetail()"
+      >
+        ×
+      </button>
 
-
-    <div
-      id="detailContent"
-      class="detail-content"
-    ></div>
-
+    </div>
 
     <div
-      id="detailAction"
-      class="detail-action"
+      id="detailIsi"
+      class="modal-body"
     ></div>
 
   </div>
@@ -620,21 +423,24 @@
 </div>
 
 
-
-<!-- ==================================================
+<!-- =====================================================
      LOADING
-================================================== -->
+===================================================== -->
 
 <div
   id="loading"
   class="loading hidden"
 >
 
-  <div class="spinner"></div>
+  <div class="loading-box">
 
-  <p>
-    Memproses...
-  </p>
+    <div class="spinner"></div>
+
+    <p>
+      Memproses...
+    </p>
+
+  </div>
 
 </div>
 
@@ -642,6 +448,4 @@
 <script src="app.js"></script>
 
 </body>
-
 </html>
-```
