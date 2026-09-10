@@ -1538,81 +1538,165 @@ function logout() {
 // REQUEST API
 // =====================================================
 
-async function requestAPI(
-  data
-) {
+function requestAPI(data) {
 
-  console.log(
-    "REQUEST:",
-    data
-  );
+  return new Promise(function(resolve, reject) {
+
+    const callbackName =
+      "jsonpCallback_" +
+      Date.now() +
+      "_" +
+      Math.floor(Math.random() * 100000);
 
 
-  const response =
-    await fetch(
-      API_URL,
-      {
+    // Buat callback global
+    window[callbackName] =
+      function(response) {
 
-        method:
-          "POST",
+        console.log(
+          "RESPONSE JSONP:",
+          response
+        );
 
-        headers: {
 
-          "Content-Type":
-            "text/plain;charset=utf-8"
+        // Hapus callback
+        delete window[callbackName];
 
-        },
 
-        body:
-          JSON.stringify(
-            data
-          )
+        if (script.parentNode) {
+
+          script.parentNode.removeChild(
+            script
+          );
+
+        }
+
+
+        resolve(response);
+
+      };
+
+
+    // Buat script
+    const script =
+      document.createElement("script");
+
+
+    // Data dikirim melalui URL
+    const params =
+      new URLSearchParams();
+
+
+    params.append(
+      "callback",
+      callbackName
+    );
+
+
+    Object.keys(data).forEach(
+      function(key) {
+
+        let value =
+          data[key];
+
+
+        // Object / array dijadikan JSON
+        if (
+          typeof value === "object" &&
+          value !== null
+        ) {
+
+          value =
+            JSON.stringify(value);
+
+        }
+
+
+        params.append(
+          key,
+          value
+        );
 
       }
     );
 
 
-  if (!response.ok) {
+    const separator =
+      API_URL.indexOf("?") >= 0
+        ? "&"
+        : "?";
 
-    throw new Error(
-      "HTTP Error " +
-      response.status
+
+    script.src =
+      API_URL +
+      separator +
+      params.toString();
+
+
+    script.onerror =
+      function() {
+
+        delete window[callbackName];
+
+
+        if (script.parentNode) {
+
+          script.parentNode.removeChild(
+            script
+          );
+
+        }
+
+
+        reject(
+          new Error(
+            "Gagal menghubungi Google Apps Script."
+          )
+        );
+
+      };
+
+
+    document
+      .body
+      .appendChild(script);
+
+
+    // Timeout 20 detik
+    setTimeout(
+      function() {
+
+        if (
+          window[callbackName]
+        ) {
+
+          delete window[callbackName];
+
+
+          if (script.parentNode) {
+
+            script.parentNode.removeChild(
+              script
+            );
+
+          }
+
+
+          reject(
+            new Error(
+              "Waktu koneksi ke server habis."
+            )
+          );
+
+        }
+
+      },
+      20000
     );
 
-  }
+  });
 
-
-  const text =
-    await response.text();
-
-
-  console.log(
-    "RAW RESPONSE:",
-    text
-  );
-
-
-  try {
-
-    return JSON.parse(
-      text
-    );
-
-  } catch (error) {
-
-    console.error(
-      "Response bukan JSON:",
-      text
-    );
-
-
-    throw new Error(
-      "Server tidak mengembalikan JSON."
-    );
-
-  }
 }
-
 
 // =====================================================
 // LOADING
