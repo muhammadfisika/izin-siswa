@@ -1,25 +1,14 @@
-/*************************************************
- * SISTEM IZIN SISWA
- * FRONTEND
- * TAHAP 4
- 
- * ROLE:
- * WALI_KELAS
- * WAKASEK
- *************************************************/
-
-
-/* ==============================================
-   URL GOOGLE APPS SCRIPT
-============================================== */
+// =====================================================
+// KONFIGURASI
+// =====================================================
 
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbzpUtFs9CDo-jtQLUg47m-6I_n1uYcZx-LPRTmtE2w9bio-uV7Kds0GOV2wKNwx6YPf/exec";
+  "GANTI_DENGAN_URL_WEB_APP_APPS_SCRIPT";
 
 
-/* ==============================================
-   GLOBAL
-============================================== */
+// =====================================================
+// GLOBAL
+// =====================================================
 
 let currentUser = null;
 
@@ -27,61 +16,12 @@ let dataIzinWakasek = [];
 
 let filterAktif = "SEMUA";
 
-
-/* ==============================================
-   SAAT HALAMAN DIBUKA
-============================================== */
-
-document.addEventListener(
-  "DOMContentLoaded",
-  function () {
-
-    const savedUser =
-      localStorage.getItem(
-        "izinSiswaUser"
-      );
+let siswaTerpilih = null;
 
 
-    if (savedUser) {
-
-      try {
-
-        currentUser =
-          JSON.parse(savedUser);
-
-        bukaDashboardSesuaiRole();
-
-      } catch (error) {
-
-        localStorage.removeItem(
-          "izinSiswaUser"
-        );
-
-      }
-
-    }
-
-
-    const tanggal =
-      document.getElementById(
-        "tanggal"
-      );
-
-
-    if (tanggal) {
-
-      tanggal.value =
-        tanggalHariIni();
-
-    }
-
-  }
-);
-
-
-/* ==============================================
-   LOGIN
-============================================== */
+// =====================================================
+// LOGIN
+// =====================================================
 
 async function login() {
 
@@ -91,7 +31,6 @@ async function login() {
       .value
       .trim();
 
-
   const password =
     document
       .getElementById("password")
@@ -99,16 +38,34 @@ async function login() {
       .trim();
 
 
-  if (!username || !password) {
+  const message =
+    document.getElementById(
+      "loginMessage"
+    );
 
-    tampilkanPesan(
-      "loginMessage",
-      "Username dan password wajib diisi.",
+
+  message.innerHTML = "";
+
+
+  if (!username) {
+
+    tampilkanPesanLogin(
+      "Username wajib diisi.",
       "error"
     );
 
     return;
+  }
 
+
+  if (!password) {
+
+    tampilkanPesanLogin(
+      "Password wajib diisi.",
+      "error"
+    );
+
+    return;
   }
 
 
@@ -117,43 +74,75 @@ async function login() {
 
   try {
 
-    const result =
+    const response =
       await requestAPI({
 
         action: "login",
 
-        username:
-          username,
+        username: username,
 
-        password:
-          password
+        password: password
 
       });
 
 
-    if (!result.success) {
+    console.log(
+      "RESPON LOGIN:",
+      response
+    );
 
-      tampilkanPesan(
-        "loginMessage",
-        result.message,
+
+    if (
+      !response ||
+      response.success !== true
+    ) {
+
+      tampilkanPesanLogin(
+
+        response &&
+        response.message
+
+          ? response.message
+
+          : "Username atau password salah.",
+
         "error"
+
       );
 
-      return;
+      tampilkanLoading(false);
 
+      return;
     }
 
 
     currentUser =
-      result.user;
+      response.user;
 
 
-    localStorage.setItem(
-      "izinSiswaUser",
-      JSON.stringify(
-        currentUser
-      )
+    if (!currentUser) {
+
+      tampilkanPesanLogin(
+        "Data pengguna tidak ditemukan.",
+        "error"
+      );
+
+      tampilkanLoading(false);
+
+      return;
+    }
+
+
+    // Simpan sesi sementara
+    sessionStorage.setItem(
+      "currentUser",
+      JSON.stringify(currentUser)
     );
+
+
+    document
+      .getElementById("loginPage")
+      .classList.remove("active");
 
 
     bukaDashboardSesuaiRole();
@@ -161,53 +150,89 @@ async function login() {
 
   } catch (error) {
 
-    tampilkanPesan(
-      "loginMessage",
-      error.message,
-      "error"
+    console.error(
+      "ERROR LOGIN:",
+      error
     );
 
-  } finally {
 
-    tampilkanLoading(false);
+    tampilkanPesanLogin(
+
+      "Login gagal. Periksa URL Apps Script dan koneksi internet.",
+
+      "error"
+
+    );
 
   }
+
+
+  tampilkanLoading(false);
+}
+
+
+// =====================================================
+// PESAN LOGIN
+// =====================================================
+
+function tampilkanPesanLogin(
+  pesan,
+  tipe
+) {
+
+  const el =
+    document.getElementById(
+      "loginMessage"
+    );
+
+
+  el.innerHTML =
+    pesan;
+
+
+  el.className =
+    "message " +
+    (
+      tipe === "error"
+        ? "message-error"
+        : "message-success"
+    );
 
 }
 
 
-/* ==============================================
-   BUKA DASHBOARD SESUAI ROLE
-============================================== */
+// =====================================================
+// DASHBOARD SESUAI ROLE
+// =====================================================
 
 function bukaDashboardSesuaiRole() {
 
-  /*
-   * Sembunyikan semua dashboard
-   */
-
+  // Sembunyikan semua halaman
   document
-    .getElementById("loginPage")
-    .classList
-    .add("hidden");
+    .querySelectorAll(".page")
+    .forEach(
+      function(page) {
 
+        page.classList.remove(
+          "active"
+        );
 
-  document
-    .getElementById("waliPage")
-    .classList
-    .add("hidden");
-
-
-  document
-    .getElementById("wakasekPage")
-    .classList
-    .add("hidden");
+      }
+    );
 
 
   const role =
     String(
       currentUser.role || ""
-    ).toUpperCase();
+    )
+    .trim()
+    .toUpperCase();
+
+
+  console.log(
+    "ROLE LOGIN:",
+    role
+  );
 
 
   if (
@@ -217,7 +242,6 @@ function bukaDashboardSesuaiRole() {
     bukaDashboardWali();
 
     return;
-
   }
 
 
@@ -228,126 +252,125 @@ function bukaDashboardSesuaiRole() {
     bukaDashboardWakasek();
 
     return;
-
   }
 
 
-  /*
-   * Role Penjaga dan Guru
-   * dibuat pada tahap berikutnya.
-   */
+  if (
+    role === "PENJAGA"
+  ) {
 
-  document
-    .getElementById("loginPage")
-    .classList
-    .remove("hidden");
+    alert(
+      "Dashboard Penjaga belum dibuat pada tahap ini."
+    );
+
+    logout();
+
+    return;
+  }
 
 
-  tampilkanPesan(
-    "loginMessage",
-    "Dashboard role " +
-      role +
-      " belum dibuat pada tahap ini.",
-    "error"
+  if (
+    role === "GURU"
+  ) {
+
+    alert(
+      "Dashboard Guru belum dibuat pada tahap ini."
+    );
+
+    logout();
+
+    return;
+  }
+
+
+  alert(
+    "Role pengguna tidak dikenali: " +
+    role
   );
 
+  logout();
 }
 
 
-/* ==============================================
-   DASHBOARD WALI KELAS
-============================================== */
+// =====================================================
+// DASHBOARD WALI
+// =====================================================
 
 function bukaDashboardWali() {
 
   document
     .getElementById("waliPage")
-    .classList
-    .remove("hidden");
+    .classList.add("active");
 
 
   document
-    .getElementById("namaWali")
-    .textContent =
-    currentUser.nama || "-";
+    .getElementById("waliInfo")
+    .innerHTML =
+
+      escapeHtml(
+        currentUser.nama || "-"
+      )
+
+      +
+
+      " | Kelas: "
+
+      +
+
+      escapeHtml(
+        currentUser.kelas || "-"
+      );
 
 
   document
-    .getElementById("kelasWali")
-    .textContent =
-    currentUser.kelas || "-";
-
-
-  const tanggal =
-    document.getElementById(
-      "tanggal"
-    );
-
-
-  if (tanggal) {
-
-    tanggal.value =
+    .getElementById(
+      "tanggalIzin"
+    )
+    .value =
       tanggalHariIni();
 
-  }
-
 }
 
 
-/* ==============================================
-   DASHBOARD WAKASEK
-============================================== */
+// =====================================================
+// DASHBOARD WAKASEK
+// =====================================================
 
-async function bukaDashboardWakasek() {
-
-  document
-    .getElementById("wakasekPage")
-    .classList
-    .remove("hidden");
-
+function bukaDashboardWakasek() {
 
   document
-    .getElementById("namaWakasek")
-    .textContent =
-    currentUser.nama || "-";
+    .getElementById(
+      "wakasekPage"
+    )
+    .classList.add("active");
 
 
   document
-    .getElementById("tanggalWakasek")
-    .textContent =
-    formatTanggalIndonesia(
-      tanggalHariIni()
-    );
+    .getElementById(
+      "wakasekInfo"
+    )
+    .innerHTML =
+      escapeHtml(
+        currentUser.nama || "-"
+      );
 
 
-  await loadDataWakasek();
-
+  loadDataWakasek();
 }
 
 
-/* ==============================================
-   LOAD DATA WAKASEK
-============================================== */
+// =====================================================
+// LOAD DATA WAKASEK
+// =====================================================
 
 async function loadDataWakasek() {
 
-  const container =
-    document.getElementById(
-      "daftarIzinWakasek"
-    );
-
-
-  container.innerHTML =
-    `
-      <div class="empty-state">
-        ⏳ Memuat data izin hari ini...
-      </div>
-    `;
+  tampilkanLoading(true);
 
 
   try {
 
-    const result =
+    const response =
       await requestAPI({
 
         action:
@@ -362,51 +385,59 @@ async function loadDataWakasek() {
       });
 
 
-    if (!result.success) {
+    console.log(
+      "DATA WAKASEK:",
+      response
+    );
 
-      container.innerHTML =
-        `
-          <div class="empty-state">
-            ❌ ${escapeHtml(
-              result.message
-            )}
-          </div>
-        `;
+
+    if (
+      !response ||
+      response.success !== true
+    ) {
+
+      alert(
+        response &&
+        response.message
+
+          ? response.message
+
+          : "Gagal mengambil data."
+      );
 
       return;
-
     }
 
 
     dataIzinWakasek =
-      result.data || [];
+      response.data || [];
 
 
     updateStatistikWakasek();
-
 
     renderDataWakasek();
 
 
   } catch (error) {
 
-    container.innerHTML =
-      `
-        <div class="empty-state">
-          ❌ ${escapeHtml(
-            error.message
-          )}
-        </div>
-      `;
+    console.error(
+      error
+    );
+
+    alert(
+      "Gagal memuat data Wakasek."
+    );
 
   }
 
+
+  tampilkanLoading(false);
 }
 
 
-/* ==============================================
-   STATISTIK WAKASEK
-============================================== */
+// =====================================================
+// STATISTIK
+// =====================================================
 
 function updateStatistikWakasek() {
 
@@ -416,12 +447,13 @@ function updateStatistikWakasek() {
 
   const menunggu =
     dataIzinWakasek.filter(
-      function (item) {
+      function(item) {
 
         return String(
-          item.STATUS_WAKASEK
-        ).toUpperCase() ===
-          "MENUNGGU";
+          item.STATUS_WAKASEK || ""
+        )
+        .toUpperCase() ===
+        "MENUNGGU";
 
       }
     ).length;
@@ -429,12 +461,13 @@ function updateStatistikWakasek() {
 
   const disetujui =
     dataIzinWakasek.filter(
-      function (item) {
+      function(item) {
 
         return String(
-          item.STATUS_WAKASEK
-        ).toUpperCase() ===
-          "DISETUJUI";
+          item.STATUS_WAKASEK || ""
+        )
+        .toUpperCase() ===
+        "DISETUJUI";
 
       }
     ).length;
@@ -442,33 +475,32 @@ function updateStatistikWakasek() {
 
   document
     .getElementById(
-      "jumlahMenunggu"
+      "statTotal"
     )
-    .textContent =
-    menunggu;
+    .innerText =
+      total;
 
 
   document
     .getElementById(
-      "jumlahDisetujui"
+      "statMenunggu"
     )
-    .textContent =
-    disetujui;
+    .innerText =
+      menunggu;
 
 
   document
     .getElementById(
-      "jumlahTotal"
+      "statDisetujui"
     )
-    .textContent =
-    total;
-
+    .innerText =
+      disetujui;
 }
 
 
-/* ==============================================
-   FILTER WAKASEK
-============================================== */
+// =====================================================
+// FILTER WAKASEK
+// =====================================================
 
 function filterWakasek(
   filter
@@ -483,36 +515,28 @@ function filterWakasek(
       ".filter-btn"
     )
     .forEach(
-      function (button) {
+      function(button) {
 
-        button
-          .classList
-          .remove("active");
-
-
-        if (
-          button.dataset.filter ===
-          filter
-        ) {
-
-          button
-            .classList
-            .add("active");
-
-        }
+        button.classList.remove(
+          "active"
+        );
 
       }
     );
 
 
-  renderDataWakasek();
+  event.target.classList.add(
+    "active"
+  );
 
+
+  renderDataWakasek();
 }
 
 
-/* ==============================================
-   RENDER DATA WAKASEK
-============================================== */
+// =====================================================
+// RENDER DATA WAKASEK
+// =====================================================
 
 function renderDataWakasek() {
 
@@ -527,18 +551,18 @@ function renderDataWakasek() {
 
 
   if (
-    filterAktif !==
-    "SEMUA"
+    filterAktif !== "SEMUA"
   ) {
 
     data =
       data.filter(
-        function (item) {
+        function(item) {
 
           return String(
-            item.STATUS_WAKASEK
-          ).toUpperCase() ===
-            filterAktif;
+            item.STATUS_WAKASEK || ""
+          )
+          .toUpperCase() ===
+          filterAktif;
 
         }
       );
@@ -546,639 +570,331 @@ function renderDataWakasek() {
   }
 
 
-  /*
-   * Urutkan:
-   * MENUNGGU di atas,
-   * kemudian DISETUJUI.
-   */
-
-  data.sort(
-    function (a, b) {
-
-      const statusA =
-        String(
-          a.STATUS_WAKASEK
-        ).toUpperCase();
-
-
-      const statusB =
-        String(
-          b.STATUS_WAKASEK
-        ).toUpperCase();
-
-
-      if (
-        statusA ===
-        "MENUNGGU" &&
-        statusB !==
-        "MENUNGGU"
-      ) {
-
-        return -1;
-
-      }
-
-
-      if (
-        statusA !==
-        "MENUNGGU" &&
-        statusB ===
-        "MENUNGGU"
-      ) {
-
-        return 1;
-
-      }
-
-
-      return 0;
-
-    }
-  );
-
-
   if (data.length === 0) {
 
     container.innerHTML =
-      `
-        <div class="empty-state">
-          📭 Tidak ada data izin
-          ${filterAktif !== "SEMUA"
-            ? "dengan status " +
-              filterAktif
-            : "hari ini"}.
-        </div>
-      `;
+
+      `<div class="empty-state">
+        Tidak ada data izin hari ini.
+      </div>`;
 
     return;
-
   }
 
 
-  container.innerHTML = "";
+  container.innerHTML =
+    data.map(
+      function(item) {
+
+        const status =
+          String(
+            item.STATUS_WAKASEK || ""
+          )
+          .toUpperCase();
 
 
-  data.forEach(
-    function (item) {
+        const tombol =
+          status === "MENUNGGU"
 
-      const card =
-        document.createElement(
-          "div"
-        );
+            ?
 
+          `<button
+             class="btn btn-success"
+             onclick="setujuiIzin('${escapeAttribute(item.ID_IZIN)}')"
+           >
+             SETUJUI
+           </button>`
 
-      card.className =
-        "permission-card";
+            :
 
-
-      const foto =
-        String(
-          item.FOTO || ""
-        ).trim();
-
-
-      const photoHTML =
-        foto
-          ? `
-              <img
-                src="${escapeAttribute(foto)}"
-                class="permission-photo"
-                alt="Foto ${escapeAttribute(
-                  item.NAMA_SISWA
-                )}"
-                onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
-              >
-
-              <div
-                class="permission-avatar"
-                style="display:none"
-              >
-                👤
-              </div>
-            `
-          : `
-              <div class="permission-avatar">
-                👤
-              </div>
-            `;
+          `<span class="badge badge-success">
+             DISETUJUI
+           </span>`;
 
 
-      const status =
-        String(
-          item.STATUS_WAKASEK || ""
-        ).toUpperCase();
+        return `
+
+          <div class="permission-card">
+
+            <div class="permission-photo">
+
+              ${
+                item.FOTO
+
+                ?
+
+                `<img
+                   src="${escapeAttribute(item.FOTO)}"
+                   onerror="this.style.display='none'"
+                 >`
+
+                :
+
+                `<div class="photo-placeholder">
+                   👤
+                 </div>`
+              }
+
+            </div>
 
 
-      const statusHTML =
-        status ===
-        "DISETUJUI"
+            <div class="permission-content">
 
-          ? `
-              <span class="status-badge status-disetujui">
-                ✓ DISETUJUI
-              </span>
-            `
-
-          : `
-              <span class="status-badge status-menunggu">
-                ⏳ MENUNGGU
-              </span>
-            `;
+              <h3>
+                ${escapeHtml(
+                  item.NAMA_SISWA || "-"
+                )}
+              </h3>
 
 
-      const jenis =
-        String(
-          item.JENIS_IZIN || ""
-        ).toUpperCase();
+              <p>
+                NIS:
+                ${escapeHtml(
+                  item.NIS || "-"
+                )}
+              </p>
 
 
-      const jenisIcon =
-        jenis ===
-        "KELUAR"
-          ? "🚪"
-          : "🏫";
+              <p>
+                Kelas:
+                ${escapeHtml(
+                  item.KELAS || "-"
+                )}
+              </p>
 
 
-      const waktu =
-        jenis ===
-        "KELUAR"
-
-          ? (
-              (item.WAKTU_KELUAR
-                ? "Keluar: " +
-                  item.WAKTU_KELUAR
-                : "") +
-              " " +
-              (item.WAKTU_MASUK
-                ? "Kembali: " +
-                  item.WAKTU_MASUK
-                : "")
-            )
-
-          : (
-              item.WAKTU_MASUK
-                ? "Masuk: " +
-                  item.WAKTU_MASUK
-                : ""
-            );
+              <p>
+                Jenis:
+                <strong>
+                  ${escapeHtml(
+                    item.JENIS_IZIN || "-"
+                  )}
+                </strong>
+              </p>
 
 
-      card.innerHTML = `
-
-        ${photoHTML}
-
-        <div class="permission-main">
-
-          <div class="permission-name">
-
-            ${escapeHtml(
-              item.NAMA_SISWA
-            )}
-
-          </div>
-
-          <div class="permission-meta">
-
-            ${escapeHtml(
-              item.KELAS
-            )}
-
-            • NIS:
-            ${escapeHtml(
-              item.NIS || "-"
-            )}
-
-            <br>
-
-            ${jenisIcon}
-            ${escapeHtml(
-              jenis
-            )}
-
-            •
-            ${escapeHtml(
-              waktu
-            )}
-
-          </div>
-
-          <div class="permission-reason">
-
-            <strong>
-              Alasan:
-            </strong>
-
-            ${escapeHtml(
-              item.ALASAN
-            )}
-
-          </div>
-
-          ${statusHTML}
-
-        </div>
+              <p>
+                Waktu:
+                ${escapeHtml(
+                  item.WAKTU_KELUAR || "-"
+                )}
+                -
+                ${escapeHtml(
+                  item.WAKTU_MASUK || "-"
+                )}
+              </p>
 
 
-        <div class="permission-action">
+              <div class="permission-actions">
 
-          <button
-            class="btn-detail"
-            onclick="lihatDetailIzin('${escapeAttribute(
-              item.ID_IZIN
-            )}')"
-          >
-            Detail
-          </button>
-
-          ${
-            status ===
-            "MENUNGGU"
-
-              ? `
                 <button
-                  class="btn-approve"
-                  onclick="setujuiIzin('${escapeAttribute(
-                    item.ID_IZIN
-                  )}')"
+                  class="btn btn-secondary"
+                  onclick="lihatDetailIzin('${escapeAttribute(item.ID_IZIN)}')"
                 >
-                  ✓ Setujui
+                  DETAIL
                 </button>
-              `
 
-              : `
-                <button
-                  class="btn-approve"
-                  disabled
-                >
-                  ✓ Disetujui
-                </button>
-              `
-          }
+                ${tombol}
 
-        </div>
+              </div>
 
-      `;
+            </div>
 
+          </div>
 
-      container.appendChild(
-        card
-      );
+        `;
 
-    }
-  );
-
+      }
+    )
+    .join("");
 }
 
 
-/* ==============================================
-   DETAIL IZIN
-============================================== */
+// =====================================================
+// DETAIL IZIN
+// =====================================================
 
-async function lihatDetailIzin(
+function lihatDetailIzin(
   idIzin
 ) {
 
-  const modal =
-    document.getElementById(
-      "detailModal"
-    );
+  const item =
+    dataIzinWakasek.find(
+      function(row) {
 
-
-  const content =
-    document.getElementById(
-      "detailContent"
-    );
-
-
-  const action =
-    document.getElementById(
-      "detailAction"
-    );
-
-
-  modal
-    .classList
-    .remove("hidden");
-
-
-  content.innerHTML =
-    `
-      <div class="empty-state">
-        ⏳ Memuat detail...
-      </div>
-    `;
-
-
-  action.innerHTML = "";
-
-
-  try {
-
-    const result =
-      await requestAPI({
-
-        action:
-          "detailIzin",
-
-        idIzin:
+        return String(
+          row.ID_IZIN
+        ) === String(
           idIzin
+        );
 
-      });
+      }
+    );
 
 
-    if (!result.success) {
+  if (!item) {
 
-      content.innerHTML =
-        `
-          <div class="empty-state">
-            ❌ ${escapeHtml(
-              result.message
-            )}
-          </div>
-        `;
+    alert(
+      "Data izin tidak ditemukan."
+    );
 
-      return;
-
-    }
-
-
-    const izin =
-      result.data.izin || {};
-
-
-    const siswa =
-      result.data.siswa || {};
-
-
-    const foto =
-      String(
-        siswa.FOTO ||
-        ""
-      ).trim();
-
-
-    const fotoHTML =
-      foto
-
-        ? `
-            <img
-              src="${escapeAttribute(foto)}"
-              class="detail-photo"
-              alt="Foto siswa"
-              onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
-            >
-
-            <div
-              class="detail-avatar"
-              style="display:none"
-            >
-              👤
-            </div>
-          `
-
-        : `
-            <div class="detail-avatar">
-              👤
-            </div>
-          `;
-
-
-    const status =
-      String(
-        izin.STATUS_WAKASEK ||
-        ""
-      ).toUpperCase();
-
-
-    content.innerHTML = `
-
-      ${fotoHTML}
-
-      <div class="detail-name">
-
-        ${escapeHtml(
-          izin.NAMA_SISWA ||
-          siswa.NAMA_SISWA ||
-          "-"
-        )}
-
-      </div>
-
-
-      <div class="detail-row">
-
-        <span class="detail-label">
-          NIS
-        </span>
-
-        <span class="detail-value">
-          ${escapeHtml(
-            siswa.NIS ||
-            izin.NIS ||
-            "-"
-          )}
-        </span>
-
-      </div>
-
-
-      <div class="detail-row">
-
-        <span class="detail-label">
-          Kelas
-        </span>
-
-        <span class="detail-value">
-          ${escapeHtml(
-            izin.KELAS ||
-            siswa.KELAS ||
-            "-"
-          )}
-        </span>
-
-      </div>
-
-
-      <div class="detail-row">
-
-        <span class="detail-label">
-          Jenis Izin
-        </span>
-
-        <span class="detail-value">
-          ${escapeHtml(
-            izin.JENIS_IZIN ||
-            "-"
-          )}
-        </span>
-
-      </div>
-
-
-      <div class="detail-row">
-
-        <span class="detail-label">
-          Alasan
-        </span>
-
-        <span class="detail-value">
-          ${escapeHtml(
-            izin.ALASAN ||
-            "-"
-          )}
-        </span>
-
-      </div>
-
-
-      <div class="detail-row">
-
-        <span class="detail-label">
-          Waktu Keluar
-        </span>
-
-        <span class="detail-value">
-          ${escapeHtml(
-            izin.WAKTU_KELUAR ||
-            "-"
-          )}
-        </span>
-
-      </div>
-
-
-      <div class="detail-row">
-
-        <span class="detail-label">
-          Waktu Masuk
-        </span>
-
-        <span class="detail-value">
-          ${escapeHtml(
-            izin.WAKTU_MASUK ||
-            "-"
-          )}
-        </span>
-
-      </div>
-
-
-      <div class="detail-row">
-
-        <span class="detail-label">
-          Wali Kelas
-        </span>
-
-        <span class="detail-value">
-          ${escapeHtml(
-            izin.NAMA_WALI ||
-            "-"
-          )}
-        </span>
-
-      </div>
-
-
-      <div class="detail-row">
-
-        <span class="detail-label">
-          Status Wali
-        </span>
-
-        <span class="detail-value">
-          ✓ DIIZINKAN
-        </span>
-
-      </div>
-
-
-      <div class="detail-row">
-
-        <span class="detail-label">
-          Status Wakasek
-        </span>
-
-        <span class="detail-value">
-
-          ${
-            status ===
-            "DISETUJUI"
-
-              ? "✓ DISETUJUI"
-
-              : "⏳ MENUNGGU"
-
-          }
-
-        </span>
-
-      </div>
-
-    `;
-
-
-    if (
-      status ===
-      "MENUNGGU"
-    ) {
-
-      action.innerHTML = `
-
-        <button
-          class="btn btn-success btn-full"
-          onclick="setujuiIzin('${escapeAttribute(
-            idIzin
-          )}');tutupDetail();"
-        >
-          ✓ SETUJUI IZIN
-        </button>
-
-      `;
-
-    }
-
-
-  } catch (error) {
-
-    content.innerHTML =
-      `
-        <div class="empty-state">
-          ❌ ${escapeHtml(
-            error.message
-          )}
-        </div>
-      `;
-
+    return;
   }
 
+
+  document
+    .getElementById(
+      "detailIsi"
+    )
+    .innerHTML = `
+
+      <p>
+        <strong>Nama:</strong>
+        ${escapeHtml(
+          item.NAMA_SISWA || "-"
+        )}
+      </p>
+
+      <p>
+        <strong>NIS:</strong>
+        ${escapeHtml(
+          item.NIS || "-"
+        )}
+      </p>
+
+      <p>
+        <strong>Kelas:</strong>
+        ${escapeHtml(
+          item.KELAS || "-"
+        )}
+      </p>
+
+      <p>
+        <strong>Tanggal:</strong>
+        ${escapeHtml(
+          formatTanggalIndonesia(
+            item.TANGGAL
+          )
+        )}
+      </p>
+
+      <p>
+        <strong>Jenis Izin:</strong>
+        ${escapeHtml(
+          item.JENIS_IZIN || "-"
+        )}
+      </p>
+
+      <p>
+        <strong>Alasan:</strong>
+        ${escapeHtml(
+          item.ALASAN || "-"
+        )}
+      </p>
+
+      <p>
+        <strong>Waktu Keluar:</strong>
+        ${escapeHtml(
+          item.WAKTU_KELUAR || "-"
+        )}
+      </p>
+
+      <p>
+        <strong>Waktu Masuk:</strong>
+        ${escapeHtml(
+          item.WAKTU_MASUK || "-"
+        )}
+      </p>
+
+      <p>
+        <strong>Status Wali:</strong>
+        ${escapeHtml(
+          item.STATUS_WALI || "-"
+        )}
+      </p>
+
+      <p>
+        <strong>Status Wakasek:</strong>
+        ${escapeHtml(
+          item.STATUS_WAKASEK || "-"
+        )}
+      </p>
+
+    `;
+
+
+  document
+    .getElementById(
+      "detailModal"
+    )
+    .classList.remove(
+      "hidden"
+    );
 }
 
 
-/* ==============================================
-   SETUJUI IZIN
-============================================== */
+// =====================================================
+// SETUJUI IZIN
+// =====================================================
 
 async function setujuiIzin(
   idIzin
 ) {
 
-  if (!idIzin) {
+  const item =
+    dataIzinWakasek.find(
+      function(row) {
+
+        return String(
+          row.ID_IZIN
+        ) === String(
+          idIzin
+        );
+
+      }
+    );
+
+
+  if (!item) {
+
+    alert(
+      "Data izin tidak ditemukan."
+    );
 
     return;
+  }
 
+
+  if (
+    String(
+      item.STATUS_WAKASEK || ""
+    ).toUpperCase() ===
+    "DISETUJUI"
+  ) {
+
+    alert(
+      "Izin ini sudah disetujui."
+    );
+
+    return;
   }
 
 
   const konfirmasi =
     confirm(
-      "Apakah Anda yakin ingin menyetujui izin siswa ini?"
+
+      "Setujui izin siswa " +
+
+      item.NAMA_SISWA +
+
+      "?"
+
     );
 
 
   if (!konfirmasi) {
 
     return;
-
   }
 
 
@@ -1187,65 +903,67 @@ async function setujuiIzin(
 
   try {
 
-    const result =
+    const response =
       await requestAPI({
 
         action:
-          "approveIzin",
-
-        user:
-          currentUser,
+          "setujuiIzin",
 
         idIzin:
-          idIzin
+          idIzin,
+
+        user:
+          currentUser
 
       });
 
 
-    if (!result.success) {
+    if (
+      !response ||
+      response.success !== true
+    ) {
 
       alert(
-        "❌ " +
-        result.message
+        response &&
+        response.message
+
+          ? response.message
+
+          : "Gagal menyetujui izin."
       );
 
       return;
-
     }
 
 
     alert(
-      "✅ " +
-      result.message
+      "Izin berhasil disetujui."
     );
 
-
-    /*
-     * Ambil ulang data dari server
-     */
 
     await loadDataWakasek();
 
 
   } catch (error) {
 
-    alert(
-      "❌ Gagal menyetujui izin: " +
-      error.message
+    console.error(
+      error
     );
 
-  } finally {
-
-    tampilkanLoading(false);
+    alert(
+      "Terjadi kesalahan saat menyetujui izin."
+    );
 
   }
 
+
+  tampilkanLoading(false);
 }
 
 
-/* ==============================================
-   TUTUP DETAIL
-============================================== */
+// =====================================================
+// TUTUP DETAIL
+// =====================================================
 
 function tutupDetail() {
 
@@ -1253,214 +971,189 @@ function tutupDetail() {
     .getElementById(
       "detailModal"
     )
-    .classList
-    .add("hidden");
-
-}
-
-
-/* ==============================================
-   WALI KELAS
-   CARI SISWA
-============================================== */
-
-function cariSiswaKey(
-  event
-) {
-
-  if (
-    event.key ===
-    "Enter"
-  ) {
-
-    cariSiswa();
-
-  }
-
-}
-
-
-/* ==============================================
-   CARI SISWA
-============================================== */
-
-async function cariSiswa() {
-
-  if (!currentUser) {
-
-    return;
-
-  }
-
-
-  const keyword =
-    document
-      .getElementById(
-        "keywordSiswa"
-      )
-      .value
-      .trim();
-
-
-  const hasil =
-    document.getElementById(
-      "hasilSiswa"
+    .classList.add(
+      "hidden"
     );
+}
 
 
-  hasil.innerHTML =
-    "<p>Mencari siswa...</p>";
+// =====================================================
+// CARI SISWA
+// =====================================================
+
+let timerCari = null;
 
 
-  try {
+function cariSiswa() {
 
-    const result =
-      await requestAPI({
-
-        action:
-          "cariSiswa",
-
-        kelas:
-          currentUser.kelas,
-
-        keyword:
-          keyword
-
-      });
+  clearTimeout(
+    timerCari
+  );
 
 
-    if (!result.success) {
+  timerCari =
+    setTimeout(
+      async function() {
 
-      hasil.innerHTML =
-        `
-          <p>
-            ❌ ${escapeHtml(
-              result.message
-            )}
-          </p>
-        `;
-
-      return;
-
-    }
+        const keyword =
+          document
+            .getElementById(
+              "cariSiswaInput"
+            )
+            .value
+            .trim();
 
 
-    if (
-      !result.data ||
-      result.data.length === 0
-    ) {
+        if (
+          keyword.length < 2
+        ) {
 
-      hasil.innerHTML =
-        "<p>❌ Siswa tidak ditemukan.</p>";
+          document
+            .getElementById(
+              "hasilPencarianSiswa"
+            )
+            .innerHTML =
+              "";
 
-      return;
-
-    }
-
-
-    hasil.innerHTML = "";
+          return;
+        }
 
 
-    result.data.forEach(
-      function (siswa) {
+        try {
 
-        const item =
-          document.createElement(
-            "div"
+          const response =
+            await requestAPI({
+
+              action:
+                "cariSiswa",
+
+              keyword:
+                keyword,
+
+              user:
+                currentUser
+
+            });
+
+
+          if (
+            !response ||
+            response.success !== true
+          ) {
+
+            return;
+          }
+
+
+          const siswa =
+            response.data || [];
+
+
+          const container =
+            document
+              .getElementById(
+                "hasilPencarianSiswa"
+              );
+
+
+          if (
+            siswa.length === 0
+          ) {
+
+            container.innerHTML =
+              `<div class="empty-state">
+                Siswa tidak ditemukan.
+              </div>`;
+
+            return;
+          }
+
+
+          container.innerHTML =
+            siswa.map(
+              function(row) {
+
+                return `
+
+                  <div
+                    class="student-item"
+                    onclick='pilihSiswa(${JSON.stringify(row).replace(/'/g, "&apos;")})'
+                  >
+
+                    <strong>
+                      ${escapeHtml(
+                        row.NAMA_SISWA || "-"
+                      )}
+                    </strong>
+
+                    <small>
+                      ${escapeHtml(
+                        row.KELAS || "-"
+                      )}
+                      |
+                      NIS:
+                      ${escapeHtml(
+                        row.NIS || "-"
+                      )}
+                    </small>
+
+                  </div>
+
+                `;
+
+              }
+            )
+            .join("");
+
+        } catch (error) {
+
+          console.error(
+            error
           );
 
+        }
 
-        item.className =
-          "student-item";
-
-
-        item.innerHTML = `
-
-          <div class="student-info">
-
-            <div class="student-name">
-
-              ${escapeHtml(
-                siswa.NAMA_SISWA
-              )}
-
-            </div>
-
-            <div class="student-class">
-
-              NIS:
-              ${escapeHtml(
-                siswa.NIS
-              )}
-
-              • Kelas:
-              ${escapeHtml(
-                siswa.KELAS
-              )}
-
-            </div>
-
-          </div>
-
-
-          <button
-            class="btn-select"
-            onclick='pilihSiswa(${JSON.stringify(
-              siswa
-            )})'
-          >
-            Pilih
-          </button>
-
-        `;
-
-
-        hasil.appendChild(
-          item
-        );
-
-      }
+      },
+      300
     );
-
-
-  } catch (error) {
-
-    hasil.innerHTML =
-      `
-        <p>
-          ❌ ${escapeHtml(
-            error.message
-          )}
-        </p>
-      `;
-
-  }
-
 }
 
 
-/* ==============================================
-   PILIH SISWA
-============================================== */
+// =====================================================
+// PILIH SISWA
+// =====================================================
 
 function pilihSiswa(
   siswa
 ) {
 
+  siswaTerpilih =
+    siswa;
+
+
   document
     .getElementById(
-      "formIzinCard"
+      "hasilPencarianSiswa"
     )
-    .classList
-    .remove("hidden");
+    .innerHTML =
+      "";
 
 
   document
     .getElementById(
-      "idSiswa"
+      "cariSiswaInput"
     )
     .value =
-    siswa.ID_SISWA;
+      siswa.NAMA_SISWA || "";
+
+
+  document
+    .getElementById(
+      "siswaTerpilih"
+    )
+    .classList.remove(
+      "hidden"
+    );
 
 
   document
@@ -1471,130 +1164,84 @@ function pilihSiswa(
 
       <strong>
         ${escapeHtml(
-          siswa.NAMA_SISWA
+          siswa.NAMA_SISWA || "-"
         )}
       </strong>
 
       <br>
 
-      <small>
+      Kelas:
+      ${escapeHtml(
+        siswa.KELAS || "-"
+      )}
 
-        NIS:
-        ${escapeHtml(
-          siswa.NIS
-        )}
+      <br>
 
-        |
-
-        Kelas:
-        ${escapeHtml(
-          siswa.KELAS
-        )}
-
-      </small>
+      NIS:
+      ${escapeHtml(
+        siswa.NIS || "-"
+      )}
 
     `;
 
 
   document
     .getElementById(
-      "formIzinCard"
+      "formIzin"
     )
-    .scrollIntoView({
-      behavior: "smooth"
-    });
-
+    .classList.remove(
+      "hidden"
+    );
 }
 
 
-/* ==============================================
-   JENIS IZIN
-============================================== */
+// =====================================================
+// JENIS IZIN
+// =====================================================
 
 function ubahJenisIzin() {
 
-  const selected =
-    document.querySelector(
-      'input[name="jenisIzin"]:checked'
-    );
-
-
-  if (!selected) {
-
-    return;
-
-  }
-
-
-  const jenis =
-    selected.value;
-
-
-  const group =
-    document.getElementById(
-      "groupWaktuKeluar"
-    );
-
-
-  if (
-    jenis ===
-    "KELUAR"
-  ) {
-
-    group
-      .classList
-      .remove("hidden");
-
-  } else {
-
-    group
-      .classList
-      .add("hidden");
-
-  }
+  // Disiapkan agar tetap kompatibel
+  // dengan tahap sebelumnya.
 
 }
 
 
-/* ==============================================
-   SIMPAN IZIN
-============================================== */
+// =====================================================
+// SIMPAN IZIN
+// =====================================================
 
 async function simpanIzin() {
 
-  if (!currentUser) {
+  if (!siswaTerpilih) {
+
+    alert(
+      "Silakan pilih siswa terlebih dahulu."
+    );
 
     return;
-
   }
-
-
-  const idSiswa =
-    document
-      .getElementById(
-        "idSiswa"
-      )
-      .value;
 
 
   const tanggal =
     document
       .getElementById(
-        "tanggal"
+        "tanggalIzin"
       )
       .value;
 
 
   const jenis =
-    document.querySelector(
-      'input[name="jenisIzin"]:checked'
-    ).value;
+    document
+      .querySelector(
+        'input[name="jenisIzin"]:checked'
+      );
 
 
   const alasan =
     document
       .getElementById(
-        "alasan"
+        "alasanIzin"
       )
       .value
       .trim();
@@ -1616,72 +1263,33 @@ async function simpanIzin() {
       .value;
 
 
-  if (!idSiswa) {
+  if (!tanggal) {
 
-    tampilkanPesan(
-      "izinMessage",
-      "Silakan pilih siswa terlebih dahulu.",
-      "error"
+    alert(
+      "Tanggal harus diisi."
     );
 
     return;
-
   }
 
 
-  if (!tanggal) {
+  if (!jenis) {
 
-    tampilkanPesan(
-      "izinMessage",
-      "Tanggal izin wajib diisi.",
-      "error"
+    alert(
+      "Pilih jenis izin."
     );
 
     return;
-
   }
 
 
   if (!alasan) {
 
-    tampilkanPesan(
-      "izinMessage",
-      "Alasan izin wajib diisi.",
-      "error"
+    alert(
+      "Alasan izin harus diisi."
     );
 
     return;
-
-  }
-
-
-  if (
-    jenis ===
-    "KELUAR" &&
-    !waktuKeluar
-  ) {
-
-    tampilkanPesan(
-      "izinMessage",
-      "Waktu keluar wajib diisi.",
-      "error"
-    );
-
-    return;
-
-  }
-
-
-  if (!waktuMasuk) {
-
-    tampilkanPesan(
-      "izinMessage",
-      "Waktu masuk/kembali wajib diisi.",
-      "error"
-    );
-
-    return;
-
   }
 
 
@@ -1690,7 +1298,7 @@ async function simpanIzin() {
 
   try {
 
-    const result =
+    const response =
       await requestAPI({
 
         action:
@@ -1700,13 +1308,13 @@ async function simpanIzin() {
           currentUser,
 
         idSiswa:
-          idSiswa,
+          siswaTerpilih.ID_SISWA,
 
         tanggal:
           tanggal,
 
         jenisIzin:
-          jenis,
+          jenis.value,
 
         alasan:
           alasan,
@@ -1720,24 +1328,26 @@ async function simpanIzin() {
       });
 
 
-    if (!result.success) {
+    if (
+      !response ||
+      response.success !== true
+    ) {
 
-      tampilkanPesan(
-        "izinMessage",
-        result.message,
-        "error"
+      alert(
+        response &&
+        response.message
+
+          ? response.message
+
+          : "Gagal menyimpan izin."
       );
 
       return;
-
     }
 
 
-    tampilkanPesan(
-      "izinMessage",
-      "✅ Izin berhasil disimpan. ID: " +
-        result.idIzin,
-      "success"
+    alert(
+      "Izin berhasil disimpan."
     );
 
 
@@ -1746,119 +1356,196 @@ async function simpanIzin() {
 
   } catch (error) {
 
-    tampilkanPesan(
-      "izinMessage",
-      "Gagal menyimpan izin: " +
-        error.message,
-      "error"
+    console.error(
+      error
     );
 
-  } finally {
-
-    tampilkanLoading(false);
+    alert(
+      "Terjadi kesalahan saat menyimpan izin."
+    );
 
   }
 
+
+  tampilkanLoading(false);
 }
 
 
-/* ==============================================
-   RESET FORM
-============================================== */
+// =====================================================
+// RESET FORM
+// =====================================================
 
 function resetFormIzin() {
 
-  document
-    .getElementById(
-      "idSiswa"
-    )
-    .value = "";
+  siswaTerpilih =
+    null;
 
 
   document
     .getElementById(
-      "alasan"
+      "cariSiswaInput"
     )
-    .value = "";
+    .value =
+      "";
+
+
+  document
+    .getElementById(
+      "hasilPencarianSiswa"
+    )
+    .innerHTML =
+      "";
+
+
+  document
+    .getElementById(
+      "siswaTerpilih"
+    )
+    .classList.add(
+      "hidden"
+    );
+
+
+  document
+    .getElementById(
+      "formIzin"
+    )
+    .classList.add(
+      "hidden"
+    );
+
+
+  document
+    .getElementById(
+      "alasanIzin"
+    )
+    .value =
+      "";
 
 
   document
     .getElementById(
       "waktuKeluar"
     )
-    .value = "";
+    .value =
+      "";
 
 
   document
     .getElementById(
       "waktuMasuk"
     )
-    .value = "";
+    .value =
+      "";
+
+
+  document
+    .querySelectorAll(
+      'input[name="jenisIzin"]'
+    )
+    .forEach(
+      function(input) {
+
+        input.checked =
+          false;
+
+      }
+    );
 
 
   document
     .getElementById(
-      "keywordSiswa"
+      "tanggalIzin"
     )
-    .value = "";
-
-
-  document
-    .getElementById(
-      "hasilSiswa"
-    )
-    .innerHTML = "";
-
-
-  document
-    .getElementById(
-      "formIzinCard"
-    )
-    .classList
-    .add("hidden");
-
+    .value =
+      tanggalHariIni();
 }
 
 
-/* ==============================================
-   LOGOUT
-============================================== */
+// =====================================================
+// LOGOUT
+// =====================================================
 
 function logout() {
 
-  localStorage.removeItem(
-    "izinSiswaUser"
+  currentUser =
+    null;
+
+
+  siswaTerpilih =
+    null;
+
+
+  dataIzinWakasek =
+    [];
+
+
+  sessionStorage.removeItem(
+    "currentUser"
   );
 
 
-  currentUser = null;
+  document
+    .querySelectorAll(
+      ".page"
+    )
+    .forEach(
+      function(page) {
+
+        page.classList.remove(
+          "active"
+        );
+
+      }
+    );
 
 
-  location.reload();
+  document
+    .getElementById(
+      "loginPage"
+    )
+    .classList.add(
+      "active"
+    );
 
+
+  document
+    .getElementById(
+      "username"
+    )
+    .value =
+      "";
+
+
+  document
+    .getElementById(
+      "password"
+    )
+    .value =
+      "";
+
+
+  document
+    .getElementById(
+      "loginMessage"
+    )
+    .innerHTML =
+      "";
 }
 
 
-/* ==============================================
-   REQUEST API
-============================================== */
+// =====================================================
+// REQUEST API
+// =====================================================
 
 async function requestAPI(
   data
 ) {
 
-  if (
-    !API_URL ||
-    API_URL.includes(
-      "GANTI_DENGAN_URL"
-    )
-  ) {
-
-    throw new Error(
-      "URL Apps Script belum dimasukkan ke app.js."
-    );
-
-  }
+  console.log(
+    "REQUEST:",
+    data
+  );
 
 
   const response =
@@ -1870,8 +1557,10 @@ async function requestAPI(
           "POST",
 
         headers: {
+
           "Content-Type":
             "text/plain;charset=utf-8"
+
         },
 
         body:
@@ -1886,93 +1575,78 @@ async function requestAPI(
   if (!response.ok) {
 
     throw new Error(
-      "Server memberikan HTTP " +
-        response.status
+      "HTTP Error " +
+      response.status
     );
 
   }
 
 
-  return await response.json();
+  const text =
+    await response.text();
 
-}
+
+  console.log(
+    "RAW RESPONSE:",
+    text
+  );
 
 
-/* ==============================================
-   PESAN
-============================================== */
+  try {
 
-function tampilkanPesan(
-  elementId,
-  message,
-  type
-) {
+    return JSON.parse(
+      text
+    );
 
-  const element =
-    document.getElementById(
-      elementId
+  } catch (error) {
+
+    console.error(
+      "Response bukan JSON:",
+      text
     );
 
 
-  if (!element) {
-
-    return;
+    throw new Error(
+      "Server tidak mengembalikan JSON."
+    );
 
   }
-
-
-  element.textContent =
-    message;
-
-
-  element.className =
-    "message " +
-    type;
-
 }
 
 
-/* ==============================================
-   LOADING
-============================================== */
+// =====================================================
+// LOADING
+// =====================================================
 
 function tampilkanLoading(
-  show
+  tampil
 ) {
 
-  const element =
+  const loading =
     document.getElementById(
       "loading"
     );
 
 
-  if (!element) {
+  if (tampil) {
 
-    return;
-
-  }
-
-
-  if (show) {
-
-    element
-      .classList
-      .remove("hidden");
+    loading.classList.remove(
+      "hidden"
+    );
 
   } else {
 
-    element
-      .classList
-      .add("hidden");
+    loading.classList.add(
+      "hidden"
+    );
 
   }
-
 }
 
 
-/* ==============================================
-   TANGGAL HARI INI
-============================================== */
+// =====================================================
+// TANGGAL HARI INI
+// =====================================================
 
 function tanggalHariIni() {
 
@@ -1987,7 +1661,8 @@ function tanggalHariIni() {
   const month =
     String(
       now.getMonth() + 1
-    ).padStart(
+    )
+    .padStart(
       2,
       "0"
     );
@@ -1996,7 +1671,8 @@ function tanggalHariIni() {
   const day =
     String(
       now.getDate()
-    ).padStart(
+    )
+    .padStart(
       2,
       "0"
     );
@@ -2009,24 +1685,34 @@ function tanggalHariIni() {
     "-" +
     day
   );
-
 }
 
 
-/* ==============================================
-   FORMAT TANGGAL INDONESIA
-============================================== */
+// =====================================================
+// FORMAT TANGGAL
+// =====================================================
 
 function formatTanggalIndonesia(
   tanggal
 ) {
 
-  const parts =
-    tanggal.split("-");
+  if (!tanggal) {
+
+    return "-";
+
+  }
+
+
+  const date =
+    new Date(
+      tanggal
+    );
 
 
   if (
-    parts.length !== 3
+    isNaN(
+      date.getTime()
+    )
   ) {
 
     return tanggal;
@@ -2034,38 +1720,20 @@ function formatTanggalIndonesia(
   }
 
 
-  const bulan = [
-    "Januari",
-    "Februari",
-    "Maret",
-    "April",
-    "Mei",
-    "Juni",
-    "Juli",
-    "Agustus",
-    "September",
-    "Oktober",
-    "November",
-    "Desember"
-  ];
-
-
-  return (
-    Number(parts[2]) +
-    " " +
-    bulan[
-      Number(parts[1]) - 1
-    ] +
-    " " +
-    parts[0]
+  return date.toLocaleDateString(
+    "id-ID",
+    {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric"
+    }
   );
-
 }
 
 
-/* ==============================================
-   ESCAPE HTML
-============================================== */
+// =====================================================
+// ESCAPE HTML
+// =====================================================
 
 function escapeHtml(
   value
@@ -2074,61 +1742,88 @@ function escapeHtml(
   return String(
     value ?? ""
   )
-    .replace(
-      /&/g,
-      "&amp;"
-    )
-    .replace(
-      /</g,
-      "&lt;"
-    )
-    .replace(
-      />/g,
-      "&gt;"
-    )
-    .replace(
-      /"/g,
-      "&quot;"
-    )
-    .replace(
-      /'/g,
-      "&#039;"
-    );
-
+  .replace(
+    /&/g,
+    "&amp;"
+  )
+  .replace(
+    /</g,
+    "&lt;"
+  )
+  .replace(
+    />/g,
+    "&gt;"
+  )
+  .replace(
+    /"/g,
+    "&quot;"
+  )
+  .replace(
+    /'/g,
+    "&#039;"
+  );
 }
 
 
-/* ==============================================
-   ESCAPE ATTRIBUTE
-============================================== */
+// =====================================================
+// ESCAPE ATTRIBUTE
+// =====================================================
 
 function escapeAttribute(
   value
 ) {
 
-  return String(
-    value ?? ""
-  )
-    .replace(
-      /&/g,
-      "&amp;"
-    )
-    .replace(
-      /"/g,
-      "&quot;"
-    )
-    .replace(
-      /'/g,
-      "&#039;"
-    )
-    .replace(
-      /</g,
-      "&lt;"
-    )
-    .replace(
-      />/g,
-      "&gt;"
-    );
-
+  return escapeHtml(
+    value
+  );
 }
-```
+
+
+// =====================================================
+// CEK SESSION
+// =====================================================
+
+window.addEventListener(
+  "DOMContentLoaded",
+  function() {
+
+    const saved =
+      sessionStorage.getItem(
+        "currentUser"
+      );
+
+
+    if (!saved) {
+
+      return;
+
+    }
+
+
+    try {
+
+      currentUser =
+        JSON.parse(
+          saved
+        );
+
+
+      if (
+        currentUser &&
+        currentUser.role
+      ) {
+
+        bukaDashboardSesuaiRole();
+
+      }
+
+    } catch (error) {
+
+      sessionStorage.removeItem(
+        "currentUser"
+      );
+
+    }
+
+  }
+);
